@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(to bottom right, #1c1e22, #1c1e22);
+            color: #fff;
+        }
+
+        .container {
+            background: #ffffff;
+            color: #333;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 500px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #42ace4;
+            font-size: 24px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 120px;
+            margin-bottom: 15px;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 16px;
+            resize: none;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            font-size: 18px;
+            color: #fff;
+            background: #2575fc;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        button:hover {
+            background: #1e5cb8;
+        }
+
+        .response {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f1f4f9;
+            border: 1px solid #e0e5ec;
+            border-radius: 8px;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+            color: #333;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        .response span {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #2575fc;
+        }
+
+        .response ul {
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .response ul li {
+            margin-bottom: 10px;
+            list-style-type: disc;
+        }
+
+        .response ul li strong {
+            font-weight: bold;
+            color: #2575fc;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #ddd;
+        }
+
+        .footer a {
+            color: #fff;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>AI Chatbot</h1>
+        <textarea id="userInput" placeholder="Ask something..."></textarea>
+        <button id="sendButton">Send</button>
+        <div id="response" class="response" style="display: none;">
+            <span>Chatbot Response:</span>
+            <ul id="responseList"></ul>
+        </div>
+        <div class="footer">Powered by <a href="https://segmind.com" target="_blank">Segmind API</a></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        const api_key = "SG_d7fc1233533e6d91";
+        const url = "https://api.segmind.com/v1/llama-v3-8b-instruct";
+
+        document.getElementById('sendButton').addEventListener('click', async () => {
+            const userInput = document.getElementById('userInput').value.trim();
+
+            if (!userInput) {
+                alert('Please enter a message.');
+                return;
+            }
+
+            const data = {
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": userInput
+                    },
+                ]
+            };
+
+            const responseDiv = document.getElementById('response');
+            const responseList = document.getElementById('responseList');
+            responseList.innerHTML = "<li>Waiting for response...</li>";
+            responseDiv.style.display = 'block';
+
+            try {
+                const response = await axios.post(url, data, {
+                    headers: { 'x-api-key': api_key }
+                });
+
+                const chatbotResponse = response.data.choices[0].message.content;
+                const points = chatbotResponse.split(/\n|\./).filter(point => point.trim() !== "");
+
+                responseList.innerHTML = "";
+                points.forEach(point => {
+                    const listItem = document.createElement('li');
+                    const boldedPoint = point.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>'); // Matches text between ** and wraps it with <strong>
+                    listItem.innerHTML = boldedPoint.trim();
+                    responseList.appendChild(listItem);
+                });
+
+            } catch (error) {
+                console.error('Error:', error.response?.data || error);
+                responseList.innerHTML = "<li>An error occurred while fetching the response. Please try again later.</li>";
+            }
+        });
+    </script>
+</body>
+</html>
